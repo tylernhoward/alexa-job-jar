@@ -2,7 +2,7 @@ const alexaSDK = require('alexa-sdk');
 const awsSDK = require('aws-sdk');
 const promisify = require('es6-promisify');
 
-const appId = 'REPLACE WITH YOUR SKILL APPLICATION ID';
+const appId = 'amzn1.ask.skill.eb6c9f1b-3c11-4c56-8594-3ce3034de864';
 const jobsTable = 'Jobs';
 const docClient = new awsSDK.DynamoDB.DocumentClient();
 
@@ -28,7 +28,7 @@ const handlers = {
 
   /**
    * Adds a job to the current user's saved jobs.
-   * Slots: JobText
+   * Slots: JobName
    */
   'AddJobIntent' () {
     const {
@@ -40,24 +40,24 @@ const handlers = {
 
     // prompt for slot values and request a confirmation for each
 
-    // JobText
-    if (!slots.JobText.value) {
-      const slotToElicit = 'JobText';
+    // JobName
+    if (!slots.JobName.value) {
+      const slotToElicit = 'JobName';
       const speechOutput = 'What job would you like to add?';
       const repromptSpeech = 'Please tell me a job would you like to add.';
       return this.emit(':elicitSlot', slotToElicit, speechOutput, repromptSpeech);
-    } else if (slots.JobText.confirmationStatus !== 'CONFIRMED') {
+    } else if (slots.JobName.confirmationStatus !== 'CONFIRMED') {
 
-      if (slots.JobText.confirmationStatus !== 'DENIED') {
+      if (slots.JobName.confirmationStatus !== 'DENIED') {
         // slot status: unconfirmed
-        const slotToConfirm = 'JobText';
-        const speechOutput = `The job you want to add is: ${slots.JobText.value}, correct?`;
+        const slotToConfirm = 'JobName';
+        const speechOutput = `The job you want to add is: ${slots.JobName.value}, correct?`;
         const repromptSpeech = speechOutput;
         return this.emit(':confirmSlot', slotToConfirm, speechOutput, repromptSpeech);
       }
 
       // slot status: denied -> reprompt for slot data
-      const slotToElicit = 'JobText';
+      const slotToElicit = 'JobName';
       const speechOutput = 'What job would you like to add?';
       const repromptSpeech = 'Please tell me a job would you like to add.';
       return this.emit(':elicitSlot', slotToElicit, speechOutput, repromptSpeech);
@@ -65,7 +65,7 @@ const handlers = {
 
     // all slot values received and confirmed, now add the record to DynamoDB
 
-    const name = slots.JobText.value;
+    const name = slots.JobName.value;
     const dynamoParams = {
       TableName: jobsTable,
       Item: {
@@ -187,8 +187,14 @@ const handlers = {
         } else {
           const randomNumber = Math.floor(Math.random() * jobs.length);
           const job = jobs[randomNumber];
-
           this.emit(':tell', `You grabbed ${job.Name} <break time="500ms"/>. Get to work!`);
+          if (job) {
+            console.log('Attempting to delete data', data);
+            return dbDelete(dynamoParams);
+          }
+          const errorMsg = `Job ${JobName} not found!`;
+          this.emit(':tell', errorMsg);
+          throw new Error(errorMsg);
         }
       })
       .catch(err => console.error(err));
@@ -203,23 +209,23 @@ const handlers = {
     } = this.event.request.intent;
 
     // prompt for the job name if needed and then require a confirmation
-    if (!slots.JobText.value) {
-      const slotToElicit = 'JobText';
+    if (!slots.JobName.value) {
+      const slotToElicit = 'JobName';
       const speechOutput = 'What is the name of the job you would like to delete?';
       const repromptSpeech = 'Please tell me the job you would like to delete';
       return this.emit(':elicitSlot', slotToElicit, speechOutput, repromptSpeech);
-    } else if (slots.JobText.confirmationStatus !== 'CONFIRMED') {
+    } else if (slots.JobName.confirmationStatus !== 'CONFIRMED') {
 
-      if (slots.JobText.confirmationStatus !== 'DENIED') {
+      if (slots.JobName.confirmationStatus !== 'DENIED') {
         // slot status: unconfirmed
-        const slotToConfirm = 'JobText';
-        const speechOutput = `You would like to delete the job ${slots.JobText.value}, correct?`;
+        const slotToConfirm = 'JobName';
+        const speechOutput = `You would like to delete the job ${slots.JobName.value}, correct?`;
         const repromptSpeech = speechOutput;
         return this.emit(':confirmSlot', slotToConfirm, speechOutput, repromptSpeech);
       }
 
       // slot status: denied -> reprompt for slot data
-      const slotToElicit = 'JobText';
+      const slotToElicit = 'JobName';
       const speechOutput = 'What is the name of the job you would like to delete?';
       const repromptSpeech = 'Please tell me the job you would like to delete';
       return this.emit(':elicitSlot', slotToElicit, speechOutput, repromptSpeech);
@@ -228,11 +234,11 @@ const handlers = {
     const {
       userId
     } = this.event.session.user;
-    const JobText = slots.JobText.value;
+    const JobName = slots.JobName.value;
     const dynamoParams = {
       TableName: jobsTable,
       Key: {
-        Name: JobText,
+        Name: JobName,
         UserId: userId
       }
     };
@@ -248,21 +254,21 @@ const handlers = {
 
         if (job) {
           console.log('Attempting to delete data', data);
-
           return dbDelete(dynamoParams);
         }
 
-        const errorMsg = `Job ${JobText} not found!`;
+        const errorMsg = `Job ${JobName} not found!`;
         this.emit(':tell', errorMsg);
         throw new Error(errorMsg);
       })
       .then(data => {
         console.log('Delete item succeeded', data);
 
-        this.emit(':tell', `Job ${JobText} deleted!`);
+        this.emit(':tell', `Job ${JobName} deleted!`);
       })
       .catch(err => console.log(err));
   },
+
 
   'Unhandled' () {
     console.error('problem', this.event);

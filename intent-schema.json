@@ -77,14 +77,6 @@
             "elicitation": "Elicit.Intent-AddJobIntent.IntentSlot-JobName"
           }
         }]
-      },
-      {
-        "name": "GetAllJobsIntent",
-        "confirmationRequired": false,
-        "elicitationRequired": true,
-        "prompts": {
-          "elicitation": "Elicit.Intent-GetAllRecipesIntent"
-        }
       }
     ]
   }

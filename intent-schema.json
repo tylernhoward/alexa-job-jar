@@ -1,0 +1,91 @@
+{
+  "languageModel": {
+    "types": [],
+    "intents": [{
+        "name": "AddJobIntent",
+        "samples": [
+          "Add a job"
+        ],
+        "slots": [{
+          "name": "JobName",
+          "type": "AMAZON.SearchQuery"
+        }]
+      },
+      {
+        "name": "AMAZON.CancelIntent",
+        "samples": []
+      },
+      {
+        "name": "AMAZON.HelpIntent",
+        "samples": []
+      },
+      {
+        "name": "AMAZON.StopIntent",
+        "samples": []
+      },
+      {
+        "name": "DeleteJobIntent",
+        "samples": [
+          "Delete a job"
+        ],
+        "slots": [{
+          "name": "JobName",
+          "type": "AMAZON.SearchQuery"
+        }]
+      },
+      {
+        "name": "GetAllJobsIntent",
+        "samples": [
+          "List All",
+          "Get All",
+          "List All Jobs",
+          "Get All Jobs"
+        ]
+      },
+      {
+        "name": "GetJobIntent",
+        "samples": [
+          "Get a job",
+          "Grab a job"
+        ],
+        "slots": [{
+          "name": "JobName",
+          "type": "AMAZON.SearchQuery"
+        }]
+      }
+    ],
+    "invocationName": "job jar"
+  },
+  "prompts": [{
+    "id": "Elicit.Intent-AddJobIntent.IntentSlot-JobName",
+    "variations": [{
+      "type": "PlainText",
+      "value": "What is the name of the job?"
+    }]
+  }],
+  "dialog": {
+    "intents": [{
+        "name": "AddJobIntent",
+        "confirmationRequired": false,
+        "prompts": {},
+        "slots": [{
+          "name": "JobName",
+          "type": "AMAZON.SearchQuery",
+          "elicitationRequired": true,
+          "confirmationRequired": false,
+          "prompts": {
+            "elicitation": "Elicit.Intent-AddJobIntent.IntentSlot-JobName"
+          }
+        }]
+      },
+      {
+        "name": "GetAllJobsIntent",
+        "confirmationRequired": false,
+        "elicitationRequired": true,
+        "prompts": {
+          "elicitation": "Elicit.Intent-GetAllRecipesIntent"
+        }
+      }
+    ]
+  }
+}
